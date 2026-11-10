@@ -89,10 +89,11 @@ foreach ($packages as $name => $package) {
 	foreach ($package['shared'] as $from => $to) {
 		coinspay_copy($root . '/adapters/shared/' . $from, $tree . '/' . $to);
 	}
-	// Installation guides at the root of the package (outside upload/: the installers skip them).
+	// Installation guides and the license at the root of the package (outside upload/: the installers skip them).
 	foreach (array('install-en.md', 'install-ru.md') as $guide) {
 		coinspay_copy($root . '/docs/' . $guide, $tree . '/' . $guide);
 	}
+	coinspay_copy($root . '/LICENSE', $tree . '/LICENSE');
 	// OpenCart's own language files: the heading of the extension in its lists, the method title.
 	foreach (array('admin', 'catalog') as $side) {
 		foreach (array('en-gb', 'ru-ru') as $lang) {

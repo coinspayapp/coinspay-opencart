@@ -119,4 +119,4 @@ docker run --rm -v "$P:/app" -w /app php:8.5-cli vendor/bin/phpcs -q
 
 ## License
 
-GPL-3.0-or-later.
+GPL-3.0-or-later. The full text is in [LICENSE](LICENSE).
