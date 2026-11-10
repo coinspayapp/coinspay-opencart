@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<ruleset name="CoinsPay for OpenCart">
+    <description>PHP compatibility of the core and the adapters of each OpenCart branch.</description>
+
+    <arg name="extensions" value="php"/>
+    <arg value="sp"/>
+
+    <!-- The core and the packages for OpenCart 1.5–3.0 run on PHP 5.3 to 8.5. -->
+    <file>core</file>
+    <file>adapters/oc15</file>
+    <file>adapters/oc20</file>
+    <file>adapters/oc23</file>
+    <file>adapters/oc30</file>
+
+    <rule ref="PHPCompatibility"/>
+    <config name="testVersion" value="5.3-"/>
+
+    <rule ref="Generic.PHP.DisallowShortOpenTag"/>
+    <rule ref="Generic.Files.ByteOrderMark"/>
+    <rule ref="Generic.Files.LineEndings">
+        <properties>
+            <property name="eolChar" value="\n"/>
+        </properties>
+    </rule>
+</ruleset>

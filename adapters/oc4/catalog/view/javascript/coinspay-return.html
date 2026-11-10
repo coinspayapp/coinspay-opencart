@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<title>CoinsPay</title>
+<script>
+// The buyer comes back from the CoinsPay payment page. OpenCart 4 sends its session cookie
+// SameSite=Strict, so the step from another site would arrive without it; this page of the
+// store makes the last step a same-site one. The fragment carries only "<order id>.<token>":
+// the page builds the return link of the extension itself and goes nowhere else, so it cannot
+// be used to send a signed-in customer to another page of the store.
+(function () {
+	var match = /^#(\d{1,11})\.([0-9a-f]{32})$/.exec(location.hash);
+	var at = location.pathname.indexOf('/extension/coinspay/');
+	var base = location.protocol + '//' + location.host + (at >= 0 ? location.pathname.slice(0, at) : '') + '/';
+	if (!match) {
+		location.replace(base);
+		return;
+	}
+	// "|" separates the method in 4.0.0–4.0.1; 4.0.2 and newer turn it into ".".
+	location.replace(base + 'index.php?route=extension/coinspay/payment/coinspay%7Cback&order_id=' + match[1] + '&token=' + match[2]);
+})();
+</script>
+</head>
+<body></body>
+</html>

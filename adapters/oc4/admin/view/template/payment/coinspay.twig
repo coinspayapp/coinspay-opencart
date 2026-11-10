@@ -1,0 +1,252 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button type="submit" form="form-coinspay" data-bs-toggle="tooltip" title="{{ t.save|e }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ t.cancel|e }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+      </div>
+      <h1>{{ t.heading|e }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text|e }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="container-fluid" id="coinspay-settings" data-prefix="{{ prefix }}"
+       data-check-url="{{ check_url }}" data-refresh-url="{{ refresh_url }}"
+       data-checking="{{ t.checking|e }}" data-check-failed="{{ t.check_failed|e }}"
+       data-copied="{{ t.copied|e }}" data-refresh-failed="{{ t.refresh_failed|e }}">
+    <div id="coinspay-save-result" class="d-none"></div>
+    {% for warning in warnings %}
+    <div class="alert alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> {{ warning|e }}</div>
+    {% endfor %}
+    {% if test_mode %}
+    <div class="alert alert-info"><i class="fa-solid fa-circle-info"></i> {{ t.test_mode_notice|e }}</div>
+    {% endif %}
+    <div class="card">
+      <div class="card-header"><i class="fa-solid fa-pencil"></i> {{ t.edit|e }}</div>
+      <div class="card-body">
+        <form id="form-coinspay" action="{{ save }}" method="post" data-coinspay-ajax="1">
+          <ul class="nav nav-tabs">
+            <li class="nav-item"><a href="#coinspay-tab-general" data-bs-toggle="tab" class="nav-link active">{{ t.tab_general|e }}</a></li>
+            <li class="nav-item"><a href="#coinspay-tab-statuses" data-bs-toggle="tab" class="nav-link">{{ t.tab_statuses|e }}</a></li>
+            <li class="nav-item"><a href="#coinspay-tab-invoices" data-bs-toggle="tab" class="nav-link">{{ t.tab_invoices|e }}</a></li>
+          </ul>
+          <div class="tab-content">
+            <div id="coinspay-tab-general" class="tab-pane active">
+              <fieldset>
+                <legend>{{ t.checkout|e }}</legend>
+                <div class="row mb-3">
+                  <label for="coinspay-status" class="col-sm-2 col-form-label">{{ t.status|e }}</label>
+                  <div class="col-sm-10">
+                    <select name="{{ prefix }}status" id="coinspay-status" class="form-select">
+                      <option value="1"{% if values.status %} selected{% endif %}>{{ t.enabled|e }}</option>
+                      <option value="0"{% if not values.status %} selected{% endif %}>{{ t.disabled|e }}</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label for="coinspay-geo-zone" class="col-sm-2 col-form-label">{{ t.geo_zone|e }}</label>
+                  <div class="col-sm-10">
+                    <select name="{{ prefix }}geo_zone_id" id="coinspay-geo-zone" class="form-select">
+                      <option value="0">{{ t.all_zones|e }}</option>
+                      {% for zone in geo_zones %}
+                      <option value="{{ zone.id }}"{% if zone.id == values.geo_zone_id %} selected{% endif %}>{{ zone.name|e }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label for="coinspay-total" class="col-sm-2 col-form-label">{{ t.total|e }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" name="{{ prefix }}total" value="{{ values.total|e }}" id="coinspay-total" class="form-control"/>
+                    <div class="form-text">{{ t.total_help|e }}</div>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label for="coinspay-sort-order" class="col-sm-2 col-form-label">{{ t.sort_order|e }}</label>
+                  <div class="col-sm-10"><input type="text" name="{{ prefix }}sort_order" value="{{ values.sort_order|e }}" id="coinspay-sort-order" class="form-control"/></div>
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>{{ t.connection|e }}</legend>
+                <p class="form-text">{{ t.connection_help|e }}</p>
+                <div class="row mb-3">
+                  <label for="coinspay-api-url" class="col-sm-2 col-form-label">{{ t.api_url|e }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" name="{{ prefix }}api_url" value="{{ values.api_url|e }}" id="coinspay-api-url" placeholder="https://coinspay.app/api/v1" class="form-control" autocomplete="off"/>
+                    <div class="form-text">{{ t.api_url_help|e }}</div>
+                  </div>
+                </div>
+                <div class="row mb-3 required">
+                  <label for="coinspay-api-key" class="col-sm-2 col-form-label">{{ t.api_key|e }}</label>
+                  <div class="col-sm-10">
+                    <input type="password" name="{{ prefix }}api_key" value="" placeholder="{{ saved.api_key ? t.saved_secret|e : '' }}" id="coinspay-api-key" class="form-control" autocomplete="new-password"/>
+                    <div class="form-text">{{ t.api_key_help|e }}</div>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label for="coinspay-webhook-url" class="col-sm-2 col-form-label">{{ t.webhook_url|e }}</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <input type="text" value="{{ webhook_url|e }}" id="coinspay-webhook-url" class="form-control" readonly/>
+                      <button type="button" class="btn btn-outline-secondary coinspay-copy" data-target="coinspay-webhook-url">{{ t.copy|e }}</button>
+                    </div>
+                    <div class="form-text">{{ webhook_last ? webhook_last|e : t.webhook_help|e }}</div>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label for="coinspay-webhook-secret" class="col-sm-2 col-form-label">{{ t.webhook_secret|e }}</label>
+                  <div class="col-sm-10">
+                    <input type="password" name="{{ prefix }}webhook_secret" value="" placeholder="{{ saved.webhook_secret ? t.saved_secret|e : '' }}" id="coinspay-webhook-secret" class="form-control" autocomplete="new-password"/>
+                    <div class="form-text">{{ t.webhook_secret_help|e }}</div>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <div class="offset-sm-2 col-sm-10">
+                    <button type="button" id="coinspay-check" class="btn btn-outline-primary">{{ t.check|e }}</button>
+                    <div class="form-text">{{ t.check_help|e }}</div>
+                    <div id="coinspay-check-result"></div>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>{{ t.invoice|e }}</legend>
+                <div class="row mb-3">
+                  <label for="coinspay-lifetime" class="col-sm-2 col-form-label">{{ t.lifetime|e }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" name="{{ prefix }}lifetime" value="{{ values.lifetime|e }}" id="coinspay-lifetime" class="form-control"/>
+                    <div class="form-text">{{ t.lifetime_help|e }}</div>
+                  </div>
+                </div>
+                {% for flag in [['auto_return', t.auto_return, t.auto_return_help], ['stablecoins_only', t.stablecoins, ''], ['buyer_pays_fee', t.buyer_fee, t.buyer_fee_help], ['buyer_pays_network', t.buyer_network, '']] %}
+                <div class="row mb-3">
+                  <div class="offset-sm-2 col-sm-10">
+                    <div class="form-check">
+                      <input type="checkbox" name="{{ prefix }}{{ flag[0] }}" value="1" id="coinspay-{{ flag[0] }}" class="form-check-input"{% if attribute(values, flag[0]) %} checked{% endif %}/>
+                      <label for="coinspay-{{ flag[0] }}" class="form-check-label">{{ flag[1]|e }}</label>
+                    </div>
+                    {% if flag[2] %}<div class="form-text">{{ flag[2]|e }}</div>{% endif %}
+                  </div>
+                </div>
+                {% endfor %}
+              </fieldset>
+              <fieldset>
+                <legend>{{ t.test|e }}</legend>
+                <div class="row mb-3">
+                  <div class="offset-sm-2 col-sm-10">
+                    <div class="form-check">
+                      <input type="checkbox" name="{{ prefix }}test_buyer_only" value="1" id="coinspay-test-buyer-only" class="form-check-input"{% if values.test_buyer_only %} checked{% endif %}/>
+                      <label for="coinspay-test-buyer-only" class="form-check-label">{{ t.test_buyer_only|e }}</label>
+                    </div>
+                    <div class="form-text">{{ t.test_buyer_help|e }}</div>
+                    {% if test_url %}<a href="{{ test_url|e }}" target="_blank" rel="noopener" id="coinspay-test-link" class="btn btn-outline-secondary mt-2">{{ t.test_link|e }}</a>{% endif %}
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>{{ t.advanced|e }}</legend>
+                <div class="row mb-3">
+                  <div class="offset-sm-2 col-sm-10">
+                    <div class="form-check">
+                      <input type="checkbox" name="{{ prefix }}debug" value="1" id="coinspay-debug" class="form-check-input"{% if values.debug %} checked{% endif %}/>
+                      <label for="coinspay-debug" class="form-check-label">{{ t.debug|e }}</label>
+                    </div>
+                    <div class="form-text">{{ t.debug_help|e }}</div>
+                  </div>
+                </div>
+                {% if cron_url %}
+                <div class="row mb-3">
+                  <label for="coinspay-cron-url" class="col-sm-2 col-form-label">{{ t.cron|e }}</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <input type="text" value="{{ cron_url|e }}" id="coinspay-cron-url" class="form-control" readonly/>
+                      <button type="button" class="btn btn-outline-secondary coinspay-copy" data-target="coinspay-cron-url">{{ t.copy|e }}</button>
+                    </div>
+                    <div class="form-text">{{ t.cron_help|e }}</div>
+                  </div>
+                </div>
+                {% endif %}
+              </fieldset>
+            </div>
+            <div id="coinspay-tab-statuses" class="tab-pane">
+              <p class="form-text">{{ t.statuses_help|e }}</p>
+              <table class="table table-bordered">
+                <thead><tr><th>{{ t.event|e }}</th><th>{{ t.order_status|e }}</th></tr></thead>
+                <tbody>
+                  {% for event in events %}
+                  <tr>
+                    <td><label for="coinspay-{{ event.key }}">{{ event.label|e }}</label></td>
+                    <td>
+                      <select name="{{ event.name }}" id="coinspay-{{ event.key }}" class="form-select coinspay-event" data-event="{{ event.key }}">
+                        <option value="">{{ t.choose|e }}</option>
+                        {% if event.no_change %}<option value="0"{% if event.value == '0' %} selected{% endif %}>{{ t.no_change|e }}</option>{% endif %}
+                        {% if event.same_as_paid %}<option value="paid"{% if event.value == 'paid' %} selected{% endif %}>{{ t.same_as_paid|e }}</option>{% endif %}
+                        {% for status in statuses %}
+                        <option value="{{ status.id }}"{% if event.value == status.id ~ '' %} selected{% endif %}>{{ status.name|e }}</option>
+                        {% endfor %}
+                      </select>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ t.cancel_statuses|e }}</label>
+                <div class="col-sm-10">
+                  <div class="form-control p-0" style="height: 180px; overflow: auto;">
+                    {% for status in statuses %}
+                    <div class="form-check ms-2">
+                      <input type="checkbox" name="{{ prefix }}cancel_statuses[]" value="{{ status.id }}" id="coinspay-cancel-{{ status.id }}" class="form-check-input"{% if status.id in cancel_statuses %} checked{% endif %}/>
+                      <label for="coinspay-cancel-{{ status.id }}" class="form-check-label">{{ status.name|e }}</label>
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <div class="form-text">{{ t.cancel_statuses_help|e }}</div>
+                </div>
+              </div>
+            </div>
+            <div id="coinspay-tab-invoices" class="tab-pane">
+              <p class="form-text">{{ t.invoices_help|e }}</p>
+              {% if invoices %}
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <th>{{ t.col_order|e }}</th><th>{{ t.col_invoice|e }}</th><th>{{ t.col_amount|e }}</th><th>{{ t.col_paid|e }}</th>
+                      <th>{{ t.col_status|e }}</th><th>{{ t.col_created|e }}</th><th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                      <td><a href="{{ order_url }}&order_id={{ invoice.order_id }}">#{{ invoice.order_id }}</a></td>
+                      <td><a href="{{ invoice.pay_url|e }}" target="_blank" rel="noopener">{{ invoice.number }}</a>{% if invoice.test %} <span class="badge bg-secondary">{{ t.test_badge|e }}</span>{% endif %}</td>
+                      <td>{{ invoice.amount|e }}</td>
+                      <td>{{ invoice.paid|e }}</td>
+                      <td class="coinspay-invoice-status">{{ invoice.status_text|e }}</td>
+                      <td>{{ invoice.created|e }}</td>
+                      <td>
+                        <button type="button" class="btn btn-outline-secondary btn-sm coinspay-refresh" data-invoice="{{ invoice.invoice_id|e }}">{{ t.refresh|e }}</button>
+                        <div class="coinspay-refresh-result small"></div>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% else %}
+              <p>{{ t.no_invoices|e }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </form>
+        <p class="text-muted small mt-3">{{ version|e }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">{{ script }}</script>
+{{ footer }}
